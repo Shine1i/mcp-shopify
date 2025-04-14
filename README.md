@@ -8,6 +8,7 @@ MCP Server for Shopify API, enabling interaction with store data through GraphQL
 - **Product Management**: Search and retrieve product information
 - **Customer Management**: Load customer data and manage customer tags
 - **Order Management**: Advanced order querying and filtering
+- **Collection Management**: Create and manage collections
 
 ## Setup
 
@@ -24,6 +25,7 @@ To use this MCP server, you'll need to create a custom app in your Shopify store
    - `read_products`, `write_products`
    - `read_customers`, `write_customers`
    - `read_orders`, `write_orders`
+   - `read_collections`, `write_collections`
 7. Click **Save**
 8. Click **Install app**
 9. Click **Install** to give the app access to your store data
@@ -211,6 +213,47 @@ shopify-mcp --accessToken=<YOUR_ACCESS_TOKEN> --domain=<YOUR_SHOP>.myshopify.com
      - `trackingNumbers` (array of strings, optional): Multiple tracking numbers
      - `trackingUrls` (array of strings, optional): Multiple tracking URLs
      - `metadata` (object, optional): Additional metadata for the fulfillment
+
+### Collection Management
+
+1. `create-collection`
+   - Create a new manual or automated collection in Shopify
+   - Inputs:
+     - `title` (string, required): Collection title
+     - `description` (string, optional): Collection description
+     - `descriptionHtml` (string, optional): HTML version of the description
+     - `handle` (string, optional): URL handle for the collection
+     - `isPublished` (boolean, optional): Whether the collection is published
+     - `seo` (object, optional): SEO settings
+       - `title` (string, optional): SEO title
+       - `description` (string, optional): SEO description
+     - `image` (object, optional): Collection image
+       - `src` (string, required): Image URL
+       - `altText` (string, optional): Alt text for the image
+     - `productsToAdd` (array of strings, optional): Product IDs to add to the collection
+     - `sortOrder` (string, optional): How products are sorted in the collection
+       - Options: "MANUAL", "BEST_SELLING", "ALPHA_ASC", "ALPHA_DESC", "PRICE_DESC", "PRICE_ASC", "CREATED", "CREATED_DESC", "ID_DESC", "RELEVANCE"
+     - `templateSuffix` (string, optional): Template suffix for custom templates
+     - `privateMetafields` (array of objects, optional): Private metafields for the collection
+       - `owner` (string, required): Metafield owner
+       - `namespace` (string, required): Metafield namespace
+       - `key` (string, required): Metafield key
+       - `value` (string, required): Metafield value
+       - `valueType` (string, required): Type of the value (e.g., "STRING", "INTEGER", etc.)
+     - `ruleSet` (object, optional): Rules for automated collections
+       - `rules` (array of objects, required): Collection rules
+         - `column` (string, required): Rule column (e.g., "TAG", "TITLE", etc.)
+         - `relation` (string, required): Rule relation (e.g., "EQUALS", "CONTAINS", etc.)
+         - `condition` (string, required): Rule condition value
+       - `appliedDisjunctively` (boolean, optional, default: true): Whether rules are combined with OR (true) or AND (false)
+     - `metafields` (array of objects, optional): Public metafields for the collection
+       - `namespace` (string, required): Metafield namespace
+       - `key` (string, required): Metafield key
+       - `value` (string, required): Metafield value
+       - `type` (string, required): Metafield type
+     - `publications` (array of objects, optional): Publication settings
+       - `publicationId` (string, required): ID of the publication
+       - `publishDate` (string, optional): Date to publish the collection
 
 ## License
 

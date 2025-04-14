@@ -562,10 +562,40 @@ server.tool(
         "PRICE_DESC",
         "PRICE_ASC",
         "CREATED",
-        "CREATED_DESC"
+        "CREATED_DESC",
+        "ID_DESC",
+        "RELEVANCE"
       ])
       .optional(),
     templateSuffix: z.string().optional(),
+    privateMetafields: z
+      .array(
+        z.object({
+          owner: z.string(),
+          namespace: z.string(),
+          key: z.string(),
+          value: z.string(),
+          valueType: z.enum([
+            "STRING",
+            "INTEGER",
+            "JSON_STRING",
+            "BOOLEAN",
+            "FLOAT",
+            "COLOR",
+            "DIMENSION",
+            "RATING",
+            "SINGLE_LINE_TEXT_FIELD",
+            "MULTI_LINE_TEXT_FIELD",
+            "DATE",
+            "DATE_TIME",
+            "URL",
+            "JSON",
+            "VOLUME",
+            "WEIGHT"
+          ])
+        })
+      )
+      .optional(),
     ruleSet: z
       .object({
         rules: z.array(
@@ -579,7 +609,9 @@ server.tool(
               "VARIANT_COMPARE_AT_PRICE",
               "VARIANT_WEIGHT",
               "VARIANT_INVENTORY",
-              "VARIANT_TITLE"
+              "VARIANT_TITLE",
+              "IS_PRICE_REDUCED",
+              "VARIANT_BARCODE"
             ]),
             relation: z.enum([
               "EQUALS",
@@ -589,7 +621,9 @@ server.tool(
               "STARTS_WITH",
               "ENDS_WITH",
               "CONTAINS",
-              "NOT_CONTAINS"
+              "NOT_CONTAINS",
+              "IS_SET",
+              "IS_NOT_SET"
             ]),
             condition: z.string()
           })
@@ -604,6 +638,14 @@ server.tool(
           key: z.string(),
           value: z.string(),
           type: z.string()
+        })
+      )
+      .optional(),
+    publications: z
+      .array(
+        z.object({
+          publicationId: z.string(),
+          publishDate: z.string().optional()
         })
       )
       .optional()

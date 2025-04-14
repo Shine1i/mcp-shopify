@@ -29,11 +29,38 @@ const CreateCollectionInputSchema = z.object({
         "PRICE_DESC",
         "PRICE_ASC",
         "CREATED",
-        "CREATED_DESC"
+        "CREATED_DESC",
+        "ID_DESC",
+        "RELEVANCE"
     ])
         .optional(),
     templateSuffix: z.string().optional(),
-    // For automatic collections
+    privateMetafields: z
+        .array(z.object({
+        owner: z.string(),
+        namespace: z.string(),
+        key: z.string(),
+        value: z.string(),
+        valueType: z.enum([
+            "STRING",
+            "INTEGER",
+            "JSON_STRING",
+            "BOOLEAN",
+            "FLOAT",
+            "COLOR",
+            "DIMENSION",
+            "RATING",
+            "SINGLE_LINE_TEXT_FIELD",
+            "MULTI_LINE_TEXT_FIELD",
+            "DATE",
+            "DATE_TIME",
+            "URL",
+            "JSON",
+            "VOLUME",
+            "WEIGHT"
+        ])
+    }))
+        .optional(),
     ruleSet: z
         .object({
         rules: z.array(z.object({
@@ -46,7 +73,9 @@ const CreateCollectionInputSchema = z.object({
                 "VARIANT_COMPARE_AT_PRICE",
                 "VARIANT_WEIGHT",
                 "VARIANT_INVENTORY",
-                "VARIANT_TITLE"
+                "VARIANT_TITLE",
+                "IS_PRICE_REDUCED",
+                "VARIANT_BARCODE"
             ]),
             relation: z.enum([
                 "EQUALS",
@@ -56,7 +85,9 @@ const CreateCollectionInputSchema = z.object({
                 "STARTS_WITH",
                 "ENDS_WITH",
                 "CONTAINS",
-                "NOT_CONTAINS"
+                "NOT_CONTAINS",
+                "IS_SET",
+                "IS_NOT_SET"
             ]),
             condition: z.string()
         })),
@@ -69,6 +100,12 @@ const CreateCollectionInputSchema = z.object({
         key: z.string(),
         value: z.string(),
         type: z.string()
+    }))
+        .optional(),
+    publications: z
+        .array(z.object({
+        publicationId: z.string(),
+        publishDate: z.string().optional()
     }))
         .optional()
 });
@@ -86,8 +123,8 @@ const createCollection = {
         try {
             // Determine if we're creating a custom or automated collection
             const isAutomatedCollection = !!input.ruleSet;
-            // Base mutation for custom collection
-            let query = gql `
+            // Base mutation for collection creation
+            const query = gql `
         mutation collectionCreate($input: CollectionInput!) {
           collectionCreate(input: $input) {
             collection {
@@ -112,7 +149,7 @@ const createCollection = {
               sortOrder
               templateSuffix
               productsCount
-              metafields(first: 10) {
+              metafields(first: 20) {
                 edges {
                   node {
                     id
@@ -120,6 +157,34 @@ const createCollection = {
                     key
                     value
                     type
+                  }
+                }
+              }
+              privateMetafields(first: 20) {
+                edges {
+                  node {
+                    id
+                    namespace
+                    key
+                    value
+                    valueType
+                  }
+                }
+              }
+              ruleSet {
+                rules {
+                  column
+                  relation
+                  condition
+                }
+                appliedDisjunctively
+              }
+              publications(first: 20) {
+                edges {
+                  node {
+                    id
+                    name
+                    publishDate
                   }
                 }
               }
@@ -131,61 +196,6 @@ const createCollection = {
           }
         }
       `;
-            // For automated collections, use a different mutation
-            if (isAutomatedCollection) {
-                query = gql `
-          mutation collectionCreate($input: CollectionInput!) {
-            collectionCreate(input: $input) {
-              collection {
-                id
-                title
-                description
-                descriptionHtml
-                handle
-                updatedAt
-                publishedAt
-                seo {
-                  title
-                  description
-                }
-                image {
-                  id
-                  src
-                  altText
-                  width
-                  height
-                }
-                sortOrder
-                templateSuffix
-                productsCount
-                ruleSet {
-                  rules {
-                    column
-                    relation
-                    condition
-                  }
-                  appliedDisjunctively
-                }
-                metafields(first: 10) {
-                  edges {
-                    node {
-                      id
-                      namespace
-                      key
-                      value
-                      type
-                    }
-                  }
-                }
-              }
-              userErrors {
-                field
-                message
-              }
-            }
-          }
-        `;
-            }
             // Prepare the mutation input
             const collectionInput = {
                 title: input.title
@@ -226,6 +236,12 @@ const createCollection = {
             if (input.metafields && input.metafields.length > 0) {
                 collectionInput.metafields = input.metafields;
             }
+            if (input.privateMetafields && input.privateMetafields.length > 0) {
+                collectionInput.privateMetafields = input.privateMetafields;
+            }
+            if (input.publications && input.publications.length > 0) {
+                collectionInput.publications = input.publications;
+            }
             const variables = {
                 input: collectionInput
             };
@@ -240,6 +256,8 @@ const createCollection = {
             const collection = data.collectionCreate.collection;
             // Format metafields if they exist
             const metafields = collection.metafields?.edges.map((edge) => edge.node) || [];
+            const privateMetafields = collection.privateMetafields?.edges.map((edge) => edge.node) || [];
+            const publications = collection.publications?.edges.map((edge) => edge.node) || [];
             const formattedCollection = {
                 id: collection.id,
                 title: collection.title,
@@ -253,7 +271,12 @@ const createCollection = {
                 sortOrder: collection.sortOrder,
                 templateSuffix: collection.templateSuffix,
                 productsCount: collection.productsCount,
-                metafields
+                metafields,
+                privateMetafields,
+                publications: publications.map((publication) => ({
+                    publicationId: publication.id,
+                    publishDate: publication.publishDate,
+                })),
             };
             // Add ruleSet for automated collections
             if (isAutomatedCollection && collection.ruleSet) {
