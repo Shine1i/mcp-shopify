@@ -62,7 +62,7 @@ if (!MYSHOPIFY_DOMAIN) {
 
 // Create Shopify GraphQL client
 const shopifyClient = new GraphQLClient(
-  `https://${MYSHOPIFY_DOMAIN}/admin/api/2025-07/shop.json`,
+  `https://${MYSHOPIFY_DOMAIN}/admin/api/2025-07/graphql.json`,
   {
     headers: {
       "X-Shopify-Access-Token": SHOPIFY_ACCESS_TOKEN,
