@@ -51,7 +51,7 @@ if (!MYSHOPIFY_DOMAIN) {
     process.exit(1);
 }
 // Create Shopify GraphQL client
-const shopifyClient = new GraphQLClient(`https://${MYSHOPIFY_DOMAIN}/admin/api/2025-07/graphql.json`, {
+const shopifyClient = new GraphQLClient(`https://${MYSHOPIFY_DOMAIN}/admin/api/2025-07/shop.json`, {
     headers: {
         "X-Shopify-Access-Token": SHOPIFY_ACCESS_TOKEN,
         "Content-Type": "application/json"
