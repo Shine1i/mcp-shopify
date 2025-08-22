@@ -24,9 +24,10 @@ const getProducts = {
   },
 
   execute: async (input: GetProductsInput) => {
+    let step_reached = 0;
     try {
       const { searchTitle, limit } = input;
-
+      step_reached = 1;
       // Create query based on whether we're searching by title or not
       const query = gql`
         query GetProducts($first: Int!, $query: String) {
@@ -75,16 +76,16 @@ const getProducts = {
           }
         }
       `;
-
+      step_reached = 2;
       const variables = {
         first: limit,
         query: searchTitle ? `title:*${searchTitle}*` : undefined
       };
-
+      step_reached = 3;
       const data = (await shopifyClient.request(query, variables)) as {
         products: any;
       };
-
+      step_reached = 4;
       // Extract and format product data
       const products = data.products.edges.map((edge: any) => {
         const product = edge.node;
@@ -97,13 +98,13 @@ const getProducts = {
           inventoryQuantity: variantEdge.node.inventoryQuantity,
           sku: variantEdge.node.sku
         }));
-
+        step_reached = 5;
         // Get first image if it exists
         const imageUrl =
           product.images.edges.length > 0
             ? product.images.edges[0].node.url
             : null;
-
+        step_reached = 6;
         return {
           id: product.id,
           title: product.title,
@@ -127,7 +128,7 @@ const getProducts = {
           variants
         };
       });
-
+      step_reached = 7;
       return { products };
     } catch (error) {
       console.error("Error fetching products:", error);
