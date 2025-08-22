@@ -113,7 +113,7 @@ const getProducts = {
         }
         catch (error) {
             console.error("Error fetching products:", error);
-            throw error;
+            throw new Error(`Failed to fetch products: ${error instanceof Error ? error.message : String(error)} with input: ${input}`);
         }
     }
 };
