@@ -135,7 +135,7 @@ const getProducts = {
       throw new Error(
         `Failed to fetch products: ${
           error instanceof Error ? error.message : String(error)
-        } with input: ${JSON.stringify(input)}`
+        } with input: ${JSON.stringify(input)} and step_reached: ${step_reached}`
       );
     }
   }
